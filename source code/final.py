@@ -1,12 +1,12 @@
 import mysql.connector as sql
-#import numpy as np
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-db='db'
+db='Stock_Management'
 pwd=''
-table='stocks'
+table='Stocks'
 
 
 def mysql_login():
@@ -17,29 +17,35 @@ def mysql_login():
     mysql_logout=True
     while mysql_logout:
         try:
-            pwd = input('Enter MySQL password')
+            pwd = input('Enter MySQL password: ')
             conn = sql.connect(host='localhost', user='root', password=pwd)
             query='create database if not exists '+db
             cursor = conn.cursor()
             cursor.execute(query)
             conn.commit()
-            mysql_logout=False   
+            mysql_logout=False 
         except:
             print('Wrong password!')
-            print('--------------------------------------------------------------------------')
+            print('-------------------------------------'*2)
 
 
 def login():
     
     global username
-    print('--------------------------------------------------------------------------')
-    username='u' #input("Enter username : ")
-    password='p' #input("Enter password : ")
-    print('--------------------------------------------------------------------------')
-    if username=="u" and password=='p':
-        print("Welcome "+str(username)+'!')
+    print('-------------------------------------'*2)
+    print('LOGIN PAGE')
+    print('-------------------------------------'*2)
+    username=input("Username: ")
+    password=input("Password: ")
+    print('-------------------------------------'*2)
+    check={'sam':'ps', 'kartik':'pk'}
+    
+    if (username, password) in check.items():
+        print("Welcome "+username+'!')
         home_page()
     else:
+        print('Wrong username and/or password!')
+        print('-------------------------------------'*2)
         login()
 
 
@@ -95,7 +101,9 @@ def update_values(col_name, set_to, row_index):
         query = "update "+str(table)+" set "+str(col_name)+" = "+str(set_to)+" where Product_Code="+str(row_index)+";"
         cursor.execute(query)
         conn.commit()
-        print('Values updated.')
+        print('-------------------------------------'*2)
+        print('Value updated.')
+        print('-------------------------------------'*2)
 
     except:
         print('Invalid update request.')
@@ -111,7 +119,9 @@ def drop_row(row_index):
     query = "delete from "+str(table)+" where Product_Code="+str(row_index)+";"
     cursor.execute(query)
     conn.commit()
-    print('Row deleted.')
+    print('-------------------------------------'*2)
+    print('Product deleted.')
+    print('-------------------------------------'*2)
 
 
 def fetch_all():
@@ -195,23 +205,23 @@ def home_page():
     except:
         pass
     
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print("HOME PAGE")
-    print('--------------------------------------------------------------------------')
-    print("(1) View entire stock ")
-    print("(2) Add new product ")
-    print("(3) Update stocks ")
-    print("(4) Remove a product ")
-    print("(5) Search for a product ")
-    print('(6) Import stocks using CSV file ')
-    print('(7) Export stocks to CSV file ')
-    print('(8) Go back to login page ')
-    print('(9) Exit ')
-    print('(10)Visualise using Graphs ')
-    print('(11)Delete database ')
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
+    print("View entire stock (1) ")
+    print("Add new product (2) ")
+    print("Update stocks (3) ")
+    print("Remove a product (4) ")
+    print("Search for a product (5) ")
+    print('Import stocks using CSV file (6) ')
+    print('Export stocks to CSV file (7) ')
+    print('Visualise using Graphs (8) ')
+    print('Delete all stock data (9) ')
+    print('Go back to login page (10) ')
+    print('Exit Program (11) ')
+    print('-------------------------------------'*2)
     code=input('Enter code: ')
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
 
     if code == '1':
         try:
@@ -220,7 +230,7 @@ def home_page():
             view_stock()
         except:
             print('Empty stock')
-            print('--------------------------------------------------------------------------')
+            print('-------------------------------------'*2)
         
     elif code == '2':
         pn=input('Enter product name: ')
@@ -230,20 +240,42 @@ def home_page():
         index = input('Enter Product Code ')
         val = '{},"{}","{}","{}","{}"'.format(index,pn,qn,prc,prf)
         add_row(val)
-        
+        print('-------------------------------------'*2)
+        print("Product Added")
+        print('-------------------------------------'*2)
+                
     elif code == '3':
         update_page()
         
     elif code == '4':
-        r=input('Enter Product_Code to be deleted: ')
-        drop_row(r)
+        r=input('Enter Product Code to be deleted: ')
+        
+        try:
+            df=fetch_all()
+            df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
+            lst=list(df['Product_Code'])
+            if int(r) in lst:
+                drop_row(r) 
+            else:
+                print('Product Code not found.')
+                
+        except:
+            print('Invalid deletion request.')
+            
         
     elif code == '5':
         search_page()
 
     elif code == '6':
         path=input('Enter memory address of CSV file without extention: ')
-        df2=pd.read_csv(r"{}.csv".format(path))
+
+        try:
+            df2=pd.read_csv(r"{}.csv".format(path))
+        except:
+            print('Invalid Address ')
+            print('-------------------------------------'*2)
+            home_page()
+
         df2.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
         for i in range(len(df2)):
             nrow=tuple(df2.iloc[i])
@@ -252,33 +284,30 @@ def home_page():
     elif code == '7':
         path=input('Enter memory address of CSV file: ')
         filename=input('Enter CSV file name: ')
-        export_csv(path,filename)
+        try:
+            export_csv(path,filename)
+        except:
+            print('Some error occured.')
+            print('-------------------------------------'*2)
 
     elif code == '8':
-        login()
+        graph_page()
 
     elif code == '9':
-        print("exiting...")
-        exit()
-
-    elif code == '10':
-        graph_page()
-        
-    elif code == '11':
         conn = sql.connect(host='localhost', user='root', password=pwd, database=db)
         cursor = conn.cursor()
-        query = "drop database "+str(db)+";"
+        query = "drop table "+str(table)+";"
         cursor.execute(query)
         conn.commit()
-        print('--------------------------------------------------------------------------')
-        print("Database DELETED !")
-        print('--------------------------------------------------------------------------')
+        print('-------------------------------------'*2)
+        print("Data DELETED !")
+        print('-------------------------------------'*2)
         print("Go Back to Login Page (1)")
         print("Go to Home Page (2)")
-        print("Exit (3)")
-        print('--------------------------------------------------------------------------')
+        print("Exit Program (3)")
+        print('-------------------------------------'*2)
         code=input('Enter code: ')
-        print('--------------------------------------------------------------------------')
+        print('-------------------------------------'*2)
 
         if code == '1':
             login()
@@ -287,33 +316,41 @@ def home_page():
         elif code == '3':
             print("Exiting...")
             exit()
+
+    elif code == '10':
+        login()
+
+    elif code == '11':
+        print("exiting...")
+        exit()
                 
     else:
         print('Enter a valid code.')
+        print('-------------------------------------'*2)
     home_page()            
 
 
 def view_stock():
     
-    print('--------------------------------------------------------------------------')
-    print('View data sorted by Product Codes (1)')
+    print('-------------------------------------'*2)
+    print('View data sorted by Product codes (1)')
     print('View data sorted by Product name (2)')
     print('View data sorted by quantity (3)')
     print('View data sorted by price (4)')
-    print('View data sorted by profit (5)')
+    print('View data sorted by profit % (5)')
     print('Go back to home page (0)')
-    print('--------------------------------------------------------------------------')
-    a=int(input('Enter code: '))
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
+    a=input('Enter code: ')
+    print('-------------------------------------'*2)
     
-    if a==0:
+    if a=='0':
         home_page()
         
-    elif a not in [0,1,2,3,4,5]:
+    elif a not in ['0','1','2','3','4','5']:
         print('Enter a valid code. ')
         
     else:       
-        dict1={1:"Product_Code", 2:"Product_name", 3:"Available_quantity", 4:"Price", 5:"Profit"}
+        dict1={'1':"Product_Code", '2':"Product_name", '3':"Available_quantity", '4':"Price", '5':"Profit"}
         cname=dict1[a]
         global db
         global table
@@ -327,6 +364,7 @@ def view_stock():
         df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
         conn.commit()
         print(df)
+    view_stock()
 
 
 def update_page():
@@ -334,171 +372,205 @@ def update_page():
     global set_to
     global row_index
     global col_name
+    global df
     
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print("UPDATE PAGE")
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print("Update Product Code (1)")
-    print("Update Product name (2)")
-    print("Update available quantity (3)")
-    print("Update price (4)")
-    print("Update profit % (5)")
-    print('Back to home page (0)')
-    print('--------------------------------------------------------------------------')
+    print("Update Product Name (2)")
+    print("Update Available Quantity (3)")
+    print("Update Price (4)")
+    print("Update Profit % (5)")
+    print('Back to Home Page (0)')
+    print('-------------------------------------'*2)
     
-    col_code=int(input('Enter code: '))
+    col_code=input('Enter code: ')
+    print('-------------------------------------'*2)
     
-    if col_code==0:
+    if col_code=='0':
         print('Reverting back to home page...')
-        print('--------------------------------------------------------------------------')
+        print('-------------------------------------'*2)
         home_page()
         
-    elif col_code not in [0,1,2,3,4,5]:
+    elif col_code not in ['0','1','2','3','4','5']:
         print('Enter a valid code. ')
+        print('-------------------------------------'*2)
         update_page()
-        
-    print('--------------------------------------------------------------------------')
-    
-    r=input('Enter Product Code to be updated: ')
-    se=input('Enter new data ')
+            
     c_name=''
+    df=fetch_all()
+    df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
     
-    if col_code==1:
+    if col_code=='1':
         c_name='Product_Code'
         
-    elif col_code==2:
+    elif col_code=='2':
         c_name='Product_name'
         
-    elif col_code==3:
+    elif col_code=='3':
         c_name='Available_quantity'
         
-    elif col_code==4:
+    elif col_code=='4':
         c_name='Price'
         
-    elif col_code==5:
+    elif col_code=='5':
         c_name='Profit'
-
-    update_values(c_name, se, r)
+    
+    r=input('Enter Product Code to be updated: ')
+    lst=list(df['Product_Code'])
+    
+    if int(r) in lst:
+        se=input('Enter new data ')
+        update_values(c_name, se, r)  
+    else:
+        print('Product Code not found.')
+        update_page()
 
 
 def search_page():
 
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print("SEARCH PAGE")
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print('Search product using Product name (1)')
     print('Search product using Product Code (2)')
     print('Search product using Product price (3)')
     print('Search product using Product profit % (4)')
-    print('Go Back (5)')
-    print('--------------------------------------------------------------------------')
+    print('Go Back (0)')
+    print('-------------------------------------'*2)
     usr = input('Enter code: ')
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     
     if usr == '1':
-        Product= input('Enter the Product name to find:')
+        Product= input('Enter the Product name to find: ')
         df =fetch_where('Product_name',Product)
         df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
         print(df)
         search_page()
         
     if usr == '2':
-        Product= input('Enter the Product Code to find:')
+        Product= input('Enter the Product Code to find: ')
         df =fetch_where('Product_Code',Product)
         df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
         print(df)
         search_page()
         
     if usr == '3':
-        Product= input('Enter the Product price to find:')
+        Product= input('Enter the Product price to find: ')
         df =fetch_where('Price',Product)
         df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
         print(df)
         search_page()
         
     if usr == '4':
-        Product= input('Enter the Product profit to find:')
+        Product= input('Enter the Product profit % to find: ')
         df =fetch_where('Profit',Product)
         df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
         print(df)
         search_page()
         
-    if usr == '5':
+    if usr == '0':
         print('Reverting back to home page...')
+        print('-------------------------------------'*2)
         home_page()
-
-
-def graph_plotter(x,y,type_graph):
-    
-    global table
-    
-    c_name=''
-    set_tb(table)
-    df=fetch_all()
-    df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
-    x=df['Product_name']
-    
-    lstX=[]
-    for i in x :
-        lstX.append(int(i))
-    lstY=[]
-    for i in y :
-        lstY.append(int(i))
-    if type_graph == 'line':
-        try :
-            plt.plot(lstX,lstY)
-            plt.xticks(df['Product_name'])
-            plt.show()
-        except :
-            print('ERROR, Not enough data to plot graph')
-            
-    elif type_graph == 'bar':
-       
-        plt.bar(lstX,lstY)
-        plt.show()
-        
-        print('ERROR, Not enough data to plot graph')
-    graph_page()
 
         
 def graph_page():
     
     global table
-    
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print("GRAPHING PAGE")
-    print('--------------------------------------------------------------------------')
-    g_type=input("Enter type of graph(bar/line)")
-    print('--------------------------------------------------------------------------')
+    print('-------------------------------------'*2)
     print('Enter which graph to plot')
-    print('(1) Product and Available quantity')
-    print('(2) Product and Price')
-    print('(3) Product and Profit%')
-    print('--------------------------------------------------------------------------')
-    col_code=int(input('Enter code: '))
-    print('--------------------------------------------------------------------------')
+    print('(1) Product vs Available quantity')
+    print('(2) Product vs Price')
+    print('(3) Product vs Profit')
+    print('(0) Go back to Home Page')
+    print('-------------------------------------'*2)
+    col_code=input('Enter code: ')
+    print('-------------------------------------'*2)
+
+    if col_code=='0':
+        print('Reverting back to Home Page...')
+        print('-------------------------------------'*2)
+        home_page()
+
+    print('Type of Graph :')
+    print('Bar (1) ')
+    print('Line (2) ')
+    print('-------------------------------------'*2)
+    g_code=input('Enter code: ')
+    print('-------------------------------------'*2)
     
     
     c_name=''
     set_tb(table)
     df=fetch_all()
     df.columns=['Product_Code','Product_name','Available_quantity','Price','Profit']
-    x=df['Product_name']
-        
-    if col_code==1:
+    x=range(len(df))
+    
+    if col_code=='1':
         c_name='Available_quantity'
-        y=df[c_name]
+        y=list(df[c_name])
 
-    elif col_code==2:
+    elif col_code=='2':
         c_name='Price'
-        y=df[c_name]
+        y=list(df[c_name])
         
-    elif col_code==3:
+    elif col_code=='3':
         c_name='Profit'
-        y=df[c_name]
+        y=list(df[c_name])
 
-    graph_plotter(x,y,g_type)
+    else:
+        print('Enter a valid code.')
+        print('-------------------------------------'*2)
+        graph_page()
+
+    if g_code=='1':
+        g_type='bar'
+
+    elif g_code=='2':
+        g_type='line'
+
+    else:
+        print('Enter a valid code.')
+        print('-------------------------------------'*2)
+        graph_page()
+
+    x_tick=np.array(df['Product_name'])
+    x_label='Product Name'
+    y_label=c_name
+    
+    graph_plotter(x, y, g_type, x_tick, x_label, y_label, c_name)
     home_page()
+
+
+def graph_plotter(x, y, g_type, x_tick, x_label, y_label, c_name):
+
+    if g_type == 'line':
+        try :
+            plt.plot(x, y, color='blue', linestyle=":", marker='.', markerfacecolor='g', markersize=12, markeredgecolor='g')
+            plt.xlabel(x_label)
+            plt.ylabel(y_label)
+            plt.xticks(x, x_tick)
+            plt.title('Product vs '+c_name)
+            plt.show()
+        except :
+            print('ERROR, Not enough data to plot graph')
+            
+    elif g_type == 'bar':
+        try :
+            plt.bar(x, y, width=0.6)
+            plt.xlabel(x_label)
+            plt.ylabel(y_label)
+            plt.xticks(x, x_tick)
+            plt.title('Product vs '+c_name)
+            plt.show()
+        except :
+            print('ERROR, Not enough data to plot graph')
+
+    graph_page()
 
 
 mysql_login()
